@@ -1,18 +1,17 @@
 # Title
-Editable Image Segmentation via Convolutional Neural Network 
+Predict References Given Related Work of Paper
 
 ## Team members
 Gaoping Huang (gaopinghuang0), Meng-Han Wu (wumenghan)
 
 ## Goals
-Our goal is to first segment image via CNN, then convert the segmentation into editable and reusable components, and finally convert back to an image after users' edition as new training data.
+Our goal is to first get dataset (at least 1000 papers, each with a `Related Work` section and corresponding references), and then recommend/predict proper references given a `Related Work` section of a new paper. It may uncover blind spots for researchers.
 
 ## Challenges
-1. Image Segmentation via CNN
-2. How to convert segmentation into editable and reusable components?
-3. How to deal with background after adjusting the components (e.g., how to deal with holes after removing the component)?
+1. Prepare dataset (at least 1000 papers, each with a `Related Work` section and corresponding references)
+2. Use RNN/CNN to predict **multiple references** for a given `Related Work`
 
 ## Work partition
-* Challenge 1: Work together
-* Challenge 2: Gaoping Huang
-* Challenge 3: Meng-Han Wu 
+* Challenge 1: Meng-Han Wu
+* Challenge 2: Work together
+* Final Report: Gaoping Huang
