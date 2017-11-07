@@ -5,6 +5,7 @@ __pycache__/
 
 # my dir
 rnn-practice/data
+.DS_Store
 
 # C extensions
 *.so
