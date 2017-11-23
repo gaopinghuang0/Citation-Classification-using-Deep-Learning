@@ -3,9 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# my dir
+# my own ignore
 rnn-practice/data
 .DS_Store
+*.tar.gz
 
 # C extensions
 *.so
