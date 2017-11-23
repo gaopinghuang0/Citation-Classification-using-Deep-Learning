@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from model import LSTMCitationClassification
-from data import *
+from data import get_data_large
 from util import prepare_sequence, label_to_text
 
 import time
@@ -19,6 +19,7 @@ import random
 
 torch.manual_seed(1)
 
+citing_sentences, polarities, word_to_idx, polarity_to_idx = get_data_large()
 
 # These will usually be more like 32 or 64 dimensional.
 # We will keep them small, so we can see how the weights change as we train.
