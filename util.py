@@ -6,6 +6,8 @@ Program:
 import torch
 import torch.autograd as autograd
 import random
+import pickle
+import os
 from constants import *
 # print(word_to_idx)
 
@@ -44,6 +46,31 @@ def zero_padding(s, padding='<PAD>', max_len=60):
         return s + [padding]*(max_len - len(s))
     return s
 
+def save_to_pickle(filename, data):
+    print('saving {}...'.format(filename))
+    with open(filename, 'wb') as fp:
+        pickle.dump(data, fp)
+
+def load_pickle(filename):
+    print('loading {}...'.format(filename))
+    with open(filename, 'rb') as fp:
+        return pickle.load(fp)
+
+def load_checkpoint():
+    print('==> Resuming from checkpoint..')
+    assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
+    checkpoint = torch.load('checkpoint/lstm-citation-classification.sortByWordFrequency.ckpt')
+    print('best_acc so far:', checkpoint['acc'])
+    return checkpoint
+
+def get_local_time_string():
+    from datetime import datetime, timezone
+    # get local timezone
+    # Credit: https://stackoverflow.com/a/39079819
+    local_timezone = datetime.now(timezone.utc).astimezone().tzinfo
+    # Credit: https://stackoverflow.com/a/18406412
+    return datetime.now(local_timezone).strftime('%Y-%m-%d_%H:%M:%S.%f')[:-7]
+
 
 if __name__ == '__main__':
-    pass
+    print(get_local_time_string())

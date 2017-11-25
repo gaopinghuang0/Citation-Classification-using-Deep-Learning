@@ -43,7 +43,7 @@ class LSTMCitationClassification(nn.Module):
         return labels
 
 class BatchLSTM(nn.Module):
-    def __init__(self, embedding_dim, hidden_dim, batch_size, vocab_size, label_size):
+    def __init__(self, embedding_dim, hidden_dim, batch_size, vocab_size, label_size, dropout=0.5):
         super(self.__class__, self).__init__()
         self.hidden_dim = hidden_dim
         self.batch_size = batch_size
@@ -52,11 +52,11 @@ class BatchLSTM(nn.Module):
         self.embeddings = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         # with dimensionality hidden_dim.
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, dropout=dropout, batch_first=True)
 
         # The linear layer that maps from hidden state space to tag space
         self.hidden2tag = nn.Linear(hidden_dim, label_size)
-        self.hidden = self.init_hidden()        
+        self.hidden = self.init_hidden()
 
     def init_hidden(self):
         # Before we've done anything, we dont have any hidden state.

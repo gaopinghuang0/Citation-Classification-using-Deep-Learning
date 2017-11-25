@@ -10,30 +10,44 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from model import BatchLSTM
-from data import get_data_large
-from util import prepare_sequence, label_to_text, get_batch_data
-
+import os
 import time
 import random
 
+from model import BatchLSTM
+from data import get_data_large, get_combined_data
+from util import prepare_sequence, label_to_text, get_batch_data, \
+                save_to_pickle, load_checkpoint
+from predict import get_error_rate
+from constants import *
+
 torch.manual_seed(1)
 
-citing_sentences, polarities, word_to_idx, polarity_to_idx = get_data_large()
+citing_sentences, polarities, word_to_idx, polarity_to_idx = get_combined_data()
 
 # These will usually be more like 32 or 64 dimensional.
 # We will keep them small, so we can see how the weights change as we train.
-EMBEDDING_DIM = 6
-HIDDEN_DIM = 8
-BATCH_SIZE = 20
-EPOCHS = 10
+
 print('total epochs: ', EPOCHS)
+
+best_acc = 0  # best test accuracy
+start_epoch = 0  # start from epoch 0 or last checkpoint epoch
+RESUME = False
+
+if RESUME:
+    # load checkpoint
+    checkpoint = load_checkpoint()
+    model = checkpoint['model']
+    best_acc = checkpoint['acc']
+    start_epoch = checkpoint['epoch']
+else:
+    print('==> Building model...')
+    model = BatchLSTM(EMBEDDING_DIM, HIDDEN_DIM, BATCH_SIZE, len(word_to_idx), len(polarity_to_idx))
 
 
 losses = []
 loss_function = nn.NLLLoss()
-model = BatchLSTM(EMBEDDING_DIM, HIDDEN_DIM, BATCH_SIZE, len(word_to_idx), len(polarity_to_idx))
-optimizer = optim.SGD(model.parameters(), lr=0.1)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 
 # # See what the scores are before training
@@ -45,8 +59,12 @@ optimizer = optim.SGD(model.parameters(), lr=0.1)
 # label_to_text(labels, polarity_to_idx)
 since = time.time()
 training_data = list(zip(citing_sentences, polarities))
-for epoch in range(EPOCHS):
+training_error_rates = []
+test_error_rates = []
+for epoch in range(1, EPOCHS+1):
     total_loss = torch.Tensor([0])
+    error_count = 0
+    total_count = 0
     for sentences, targets, seq_lengths in get_batch_data(training_data, BATCH_SIZE, word_to_idx, shuffle=True):
         # Step 1. Prepare the inputs to be passed to the model (i.e, turn the words
         # into integer indices and wrap them in variables)
@@ -63,6 +81,8 @@ for epoch in range(EPOCHS):
 
         # step 3. Run forward pass
         labels = model(sentences_in, seq_lengths)
+        error_count += (labels.data.max(1)[1] != targets.data).sum()
+        total_count += BATCH_SIZE
 
         # Step 4. Compute your loss function. (Again, Torch wants the target
         # word wrapped in a variable)
@@ -73,12 +93,26 @@ for epoch in range(EPOCHS):
         optimizer.step()
 
         total_loss += loss.data
-    print('epoch: {}, time: {:.2f}s, cost so far: {}'.format(epoch, (time.time() - since), total_loss))
     losses.append(total_loss)
+    training_error_rates.append(error_count / total_count)
+    test_error_rate = get_error_rate(model)
+    test_error_rates.append(test_error_rate)
+    acc = 1 - test_error_rate
+    print('epoch: {}, time: {:.2f}s, cost so far: {}, accurary: {:.3f}'.format(
+        start_epoch+epoch, (time.time() - since), total_loss.numpy(), acc))
+    if acc > best_acc:
+        print('Saving checkpoint...')
+        state = {
+            'model': model,
+            'acc': acc,
+            'epoch': epoch
+        }
+        if not os.path.isdir('checkpoint'):
+            os.mkdir('checkpoint')
+        torch.save(state, 'checkpoint/lstm-citation-classification.sortByWordFrequency.ckpt')
+        best_acc = acc
 
-# save model
-torch.save(model, 'lstm-citation-classification.ckpt')
 # save all_losses
-import pickle
-with open('all_losses.p', 'wb') as fp:
-    pickle.dump(losses, fp)
+save_to_pickle('checkpoint/all_losses.p', losses)
+save_to_pickle('checkpoint/training_error_rates.p', training_error_rates)
+save_to_pickle('checkpoint/test_error_rates.p', test_error_rates)
