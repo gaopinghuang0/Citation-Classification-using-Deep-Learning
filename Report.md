@@ -1,20 +1,30 @@
 
 
-## must TODOs
-1. Try learning rate
-2. Order word_to_idx by frequency
-3. clean data: remove punctuations & stop words
-4. Balance skewed data: keep similar size of neural and positive+negative
-* draw histogram for sentence length
+## Increase accurary
+* [DONE] clean data: remove punctuations & stop words
+* [DONE] draw histogram for sentence length
+* Order word_to_idx by frequency
+* Balance skewed data: keep similar size of neural and positive+negative
+* Try learning rate
+* Adjust EMBEDDING_DIM, HIDDEN_DIM
+* Normalize data
 
 ## Speed up training
-* Increase batch_size, may not work for mixed length of sentenses, [Recurrent Models with sequences of mixed length](https://github.com/fchollet/keras/issues/40)
-* Limit the sentence length
+* Increase batch_size
+* [DONE] Limit the sentence length to max_len:
+	* [Recurrent Models with sequences of mixed length](https://github.com/fchollet/keras/issues/40)
+	* zero_padding to the ~~left~~ right of the shorter sentence, and use `pack_padded_sequence()`, see [handle variable length inputs sentences](https://discuss.pytorch.org/t/how-to-handle-variable-length-inputs-sentences/5407)
+	> I am using my own pre-trained word embeddings and i apply zero_padding (to the right) on all sentences. The problem is that with my current code, the LSTM processes all timesteps, even the zero padded. How can i modify my code to handle variable length inputs?
+
+	Our understanding is that when we use 
+	`nn.utils.rnn.pack_padded_sequence(batch_in, seq_lengths, batch_first=True)`, the RNN model will stop `forward` pass based on the `seq_length` of each sequence. Therefore, it will not involve the padding zeros.
+	* truncate the right of longer sentence
+	* No need to use mask, [tweet sentiment analyzer](http://deeplearning.net/tutorial/code/lstm.py). Based on [seq2seq loss using mask](https://discuss.pytorch.org/t/how-can-i-compute-seq2seq-loss-using-mask/861):
+	> In seq2seq, padding is used to handle the variable-length sequence problems. Additionally, mask is multiplied by the calculated loss (vector not scalar) so that the padding does not affect the loss.
  
 
 ## Possible todos:
 1. 2-layer LSTM
-2. use a fixed length, such as masking, [tweet sentiment analyzer](http://deeplearning.net/tutorial/code/lstm.py)
 3. [How to Handle Very Long Sequences with Long Short-Term Memory Recurrent Neural Networks](https://machinelearningmastery.com/handle-long-sequences-long-short-term-memory-recurrent-neural-networks/)
 	> LSTMs work very well if your problem has one output for every input, like time series forecasting or text translation. But LSTMs can be challenging to use when you have very long input sequences and only one or a handful of outputs. 
 	> This is often called sequence labeling, or sequence classification.
@@ -23,5 +33,5 @@
 ## Useful Blogs
 1. [Sentiment analysis using RNNs(LSTM)](https://towardsdatascience.com/sentiment-analysis-using-rnns-lstm-60871fa6aeba)
 	> One thing in my experiments I could not explain is when I encode the words to integers if I randomly assign unique integers to words the best accuracy I get is 50–55% (basically the model is not doing much better than random guessing). However if the words are encoded such that highest frequency words get the lowest number then the model accuracy is 80% in 3–5 epochs. My guess is this is necessary to train the embedding layer but cannot find an explanation on why anywhere.
-
+2. [handle variable length inputs sentences](https://discuss.pytorch.org/t/how-to-handle-variable-length-inputs-sentences/5407)
 
