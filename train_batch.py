@@ -17,7 +17,7 @@ import random
 from model import BatchLSTM
 from data import get_data_large, get_combined_data
 from util import prepare_sequence, label_to_text, get_batch_data, \
-                save_to_pickle, load_checkpoint
+                save_to_pickle, load_checkpoint, save_checkpoint
 from predict import get_error_rate
 from constants import *
 
@@ -95,21 +95,13 @@ for epoch in range(1, EPOCHS+1):
         total_loss += loss.data
     losses.append(total_loss)
     training_error_rates.append(error_count / total_count)
-    test_error_rate = get_error_rate(model)
+    test_error_rate = get_error_rate(model, training=False)
     test_error_rates.append(test_error_rate)
     acc = 1 - test_error_rate
     print('epoch: {}, time: {:.2f}s, cost so far: {}, accurary: {:.3f}'.format(
         start_epoch+epoch, (time.time() - since), total_loss.numpy(), acc))
     if acc > best_acc:
-        print('Saving checkpoint...')
-        state = {
-            'model': model,
-            'acc': acc,
-            'epoch': epoch
-        }
-        if not os.path.isdir('checkpoint'):
-            os.mkdir('checkpoint')
-        torch.save(state, 'checkpoint/lstm-citation-classification.sortByWordFrequency.ckpt')
+        save_checkpoint(model, acc, epoch)
         best_acc = acc
 
 # save all_losses

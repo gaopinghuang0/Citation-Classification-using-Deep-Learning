@@ -59,9 +59,20 @@ def load_pickle(filename):
 def load_checkpoint():
     print('==> Resuming from checkpoint..')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('checkpoint/lstm-citation-classification.sortByWordFrequency.ckpt')
+    checkpoint = torch.load('checkpoint/lstm-citation-classification.ckpt')
     print('best_acc so far:', checkpoint['acc'])
     return checkpoint
+
+def save_checkpoint(model, acc, epoch):
+    print('Saving checkpoint...')
+    state = {
+        'model': model,
+        'acc': acc,
+        'epoch': epoch
+    }
+    if not os.path.isdir('checkpoint'):
+        os.mkdir('checkpoint')
+    torch.save(state, 'checkpoint/lstm-citation-classification.ckpt')
 
 def get_local_time_string():
     from datetime import datetime, timezone

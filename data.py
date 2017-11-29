@@ -8,6 +8,9 @@ import torch.autograd as autograd
 # import en    # not supported in python3
 import string
 import pickle
+import random
+import re
+import time
 from collections import Counter
 from constants import *
 from util import save_to_pickle
@@ -68,7 +71,11 @@ def preprocess_data_combined(max_len=60):
     large_sentences, large_polarities, polarity_to_idx = _preprocess_data_large(max_len)
     combined_sentences = small_sentences + large_sentences
     combined_polarities = small_polarities + large_polarities
+    # shuffle all data
+    data = list(zip(combined_sentences, combined_polarities))
+    random.shuffle(data)
     word_to_idx = compute_word_to_idx(combined_sentences)
+    combined_sentences, combined_polarities = zip(*data)
     # save as pickle for later use
     save_to_pickle('processed_data/data_combined.pkl', [combined_sentences, combined_polarities, word_to_idx, polarity_to_idx])
 
@@ -126,6 +133,14 @@ def unify_word(word):  # went -> go, apples -> apple, BIG -> big
     except: pass
     return word
 
+def remove_xml_tags(s):
+    """
+    Remove the XML-like tags, such as <REF>, <TREF>, <marker>, ...
+    Note that tags should not have whitespace right after '<' and right before '>'
+    """
+    ptn = r'<\S[^>]*\S>'  # FIXME: it doesn't work for case like '<a>'
+    return re.sub(ptn, '', s)
+
 # credit: https://stackoverflow.com/a/34294398
 def remove_punctuation(s):
     translator = str.maketrans('', '', string.punctuation)
@@ -135,6 +150,7 @@ def remove_stopwords(s):
     return [w for w in s.split() if w not in eng_stop]
 
 def my_tokenizer(s):
+    s = remove_xml_tags(s)
     s = remove_punctuation(s)
     s = s.lower()
     return [unify_word(w) for w in remove_stopwords(s)]
@@ -144,3 +160,15 @@ if __name__ == '__main__':
     # preprocess_data_large(MAX_LEN)
     # preprocess_data_small(MAX_LEN)
     preprocess_data_combined(MAX_LEN)
+    # with open('./citation_sentiment_large/citation_sentiment_corpus.txt', 'r') as f:
+    #     for line in f.readlines():
+    #         if line.startswith('#') or len(line.split('\t')) < 4:
+    #             continue
+    #         _, _, polarity, sent = line.strip().lower().split('\t')
+    #         ptn = r'<\S[^>]*\S+>'
+    #         if re.search(ptn, sent):
+    #             print(sent, '\n')
+    #             print(remove_xml_tags(sent))
+    #             print()
+    #             print()
+    #             time.sleep(3)

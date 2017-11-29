@@ -16,8 +16,6 @@ import time
 
 torch.manual_seed(1)
 
-test_citing_sentences, test_polarities, word_to_idx, polarity_to_idx = get_combined_data(training=False)
-
 # Just return an int label
 def evaluate(model, sentence):
     inputs = prepare_sequence(sentence, word_to_idx)
@@ -31,10 +29,13 @@ def evaluate_batch(model, sentences, seq_lengths):
     labels = model(sentences_in, seq_lengths)
     return labels.data.max(1)[1]
 
-def get_error_rate(model=None, verbose=False):
+def get_error_rate(model=None, verbose=False, training=False):
     if not model:
         checkpoint = load_checkpoint()
         model = checkpoint['model']
+
+
+    test_citing_sentences, test_polarities, word_to_idx, polarity_to_idx = get_combined_data(training)
 
     test_data = list(zip(test_citing_sentences, test_polarities))
 
@@ -56,7 +57,7 @@ def get_error_rate(model=None, verbose=False):
 
 
 if __name__ == '__main__':
-    get_error_rate(verbose=True)
+    get_error_rate(verbose=True, training=False)
     # sentence = ['<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', 'table', 'tbl', 'stand', 'brill', 'transformationbased', 'errordriven', 'tagget', 'brill', '1995', 'stand', 'tagger', 'base', 'maimum', 'entropy', 'model', 'ratnaparkhi', '1996', 'spatter', 'stand', 'statistical', 'parser', 'base', 'decision', 'tree', 'magerman', '1996', 'igtree', 'stand', 'memorybased', 'tagger', 'daelemans', 'et', 'al']
     # for word in sentence:
     #     if word not in word_to_idx:

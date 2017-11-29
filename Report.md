@@ -1,21 +1,23 @@
 
 
 ## Increase accurary
-* [DONE] clean data: remove punctuations & stop words
+* [DONE] clean data: 
+	* remove tags like <REF> and <TREF>, or even remove the content between these tags
+	* remove punctuations & stop words
 * [DONE] draw histogram for sentence length
 * [DONE] Balance skewed data: keep similar size of neural and positive+negative
 * [Not working] Order word_to_idx by frequency
 * [DONE] add dropout
 * [DONE] Try learning rate
+* [DONE] combine dataset_small and dataset_large, and then shuffle
+* [Not working as the model is overfitting now] Bi-LSTM, two layer LSTM, Bi-LSTM-CRF
+* Use existing word embeddings (word2vec, GloVe) instead of torch.nn.Embeddings
 * Adjust EMBEDDING_DIM, HIDDEN_DIM
 * fisrt compare neutral vs. subjective, then compare positive vs. negative
 * Normalize data
-* [Not working as the model is overfitting now] Bi-LSTM, two layer LSTM, Bi-LSTM-CRF
 * add char-level RNN layer
 * try diff loss function
 * try diff backprop optimization
-* Use existing word embeddings (word2vec, GloVe) instead of torch.nn.Embeddings
-* use dataset_small as test data
 
 ## Speed up training
 * [DONE] Increase batch_size
