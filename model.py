@@ -7,6 +7,7 @@ import torch
 import torch.autograd as autograd
 import torch.nn as nn
 import torch.nn.functional as F
+from util import load_pickle, save_to_pickle
 
 import time
 
@@ -22,7 +23,7 @@ class LSTMCitationClassification(nn.Module):
 
         # The linear layer that maps from hidden state space to tag space
         self.hidden2tag = nn.Linear(hidden_dim, label_size)
-        self.hidden = self.init_hidden()        
+        self.hidden = self.init_hidden()
 
     def init_hidden(self):
         # Before we've done anything, we dont have any hidden state.
@@ -47,6 +48,7 @@ class BatchLSTM(nn.Module):
         super(self.__class__, self).__init__()
         self.hidden_dim = hidden_dim
         self.batch_size = batch_size
+        self.embedding_dim = embedding_dim
 
         # make sure the padding word has embedding of 0
         self.embeddings = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
@@ -57,6 +59,43 @@ class BatchLSTM(nn.Module):
         # The linear layer that maps from hidden state space to tag space
         self.hidden2tag = nn.Linear(hidden_dim, label_size)
         self.hidden = self.init_hidden()
+
+    def load_glove_model(self, path_to_glove, word_to_idx,
+                saved_embedding='processed_data/glove_embedding.pkl',
+                regenerate=True):
+        """
+        Overwrite nn.Embedding.weight by pre-trained GloVe vectors.
+
+        First load pre-trained GloVe model, i.e., a word-vector lookup table
+        Then filter the words appeared in our dataset based on word_to_idx
+        Then construct a idx-vector lookup table and overwrite initial nn.Embedding.weight 
+        Credit: https://github.com/pytorch/text/issues/30
+        """
+        if regenerate:
+            count = 0
+            pretrained_embeddings_matrix = torch.Tensor(len(word_to_idx), self.embedding_dim)
+            pretrained_embeddings_matrix.normal_(0, 1)
+            with open(path_to_glove, 'r') as f:
+                for line in f.readlines():
+                    row = line.split()
+                    word, vector = row[0], row[1:]
+                    vector = torch.FloatTensor(list(map(float, vector)))
+                    # only update the word that is in both word_to_idx and glove
+                    # remain the same weight for the word that is not in glove model
+                    if word in word_to_idx:
+                        count += 1
+                        # print('before', self.embeddings.weight.data[word_to_idx[word]])
+                        # print('before', pretrained_embeddings_matrix[word_to_idx[word]])
+                        # print('before', vector)
+                        pretrained_embeddings_matrix[word_to_idx[word]] = vector
+                        # print('after', pretrained_embeddings_matrix[word_to_idx[word]])
+                        # break
+                print('num of words in both word_to_idx and glove', count)
+                save_to_pickle(saved_embedding, pretrained_embeddings_matrix)
+        else:
+            pretrained_embeddings_matrix = load_pickle(saved_embedding)
+        # overwrite initial embedding.weight
+        self.embeddings.weight.data.copy_(pretrained_embeddings_matrix)
 
     def init_hidden(self):
         # Before we've done anything, we dont have any hidden state.

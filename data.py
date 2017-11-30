@@ -44,13 +44,21 @@ def _preprocess_data_large(max_len=60):
     # database: http://cl.awaisathar.com/citation-sentiment-corpus/
     print('pre-processing data large...')
     with open('./citation_sentiment_large/citation_sentiment_corpus.txt', 'r') as f:
+        i = 19
         for line in f.readlines():
             if line.startswith('#') or len(line.split('\t')) < 4:
                 continue
             _, _, polarity, sent = line.strip().lower().split('\t')
             polarities.append(polarity_to_idx[polarity])
             # clean sentence by removing punctuations & stop words
+            _sent = sent
             sent = my_tokenizer(sent)
+            i += 1
+            for word in sent:
+                if 30 > len(word) >= 20:
+                    print([word for word in sent if 30 > len(word) >= 20], 'lineno', i)
+                    print()
+                    break
             citing_sentences.append(sent[:max_len])  # truncate at length of max_len
     return citing_sentences, polarities, polarity_to_idx
 
@@ -146,12 +154,17 @@ def remove_punctuation(s):
     translator = str.maketrans('', '', string.punctuation)
     return s.translate(translator)
 
+# Credit: https://stackoverflow.com/a/12437721
+def replace_punctuation_with_space(s):
+    regex = re.compile('[%s]' % re.escape(string.punctuation))
+    return regex.sub(' ', s)
+
 def remove_stopwords(s):
     return [w for w in s.split() if w not in eng_stop]
 
 def my_tokenizer(s):
     s = remove_xml_tags(s)
-    s = remove_punctuation(s)
+    s = replace_punctuation_with_space(s)
     s = s.lower()
     return [unify_word(w) for w in remove_stopwords(s)]
 

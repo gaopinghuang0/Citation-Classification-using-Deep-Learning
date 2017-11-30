@@ -28,11 +28,13 @@ citing_sentences, polarities, word_to_idx, polarity_to_idx = get_combined_data()
 # These will usually be more like 32 or 64 dimensional.
 # We will keep them small, so we can see how the weights change as we train.
 
-print('total epochs: ', EPOCHS)
 
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 RESUME = False
+use_glove = True
+
+print('total epochs: ', EPOCHS, '; use_glove: ', use_glove)
 
 if RESUME:
     # load checkpoint
@@ -43,11 +45,15 @@ if RESUME:
 else:
     print('==> Building model...')
     model = BatchLSTM(EMBEDDING_DIM, HIDDEN_DIM, BATCH_SIZE, len(word_to_idx), len(polarity_to_idx))
-
+    if use_glove:
+        model.load_glove_model('GloVe-1.2/vectors.txt', word_to_idx)
 
 losses = []
 loss_function = nn.NLLLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
+# optim below are not working
+# optimizer = optim.SGD(model.parameters(), momentum=0.9, lr=0.001)
+# optimizer = optim.Adagrad(model.parameters(), lr=0.001)
 
 
 # # See what the scores are before training

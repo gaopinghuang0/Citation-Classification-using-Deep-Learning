@@ -11,8 +11,9 @@
 * [DONE] Try learning rate
 * [DONE] combine dataset_small and dataset_large, and then shuffle
 * [Not working as the model is overfitting now] Bi-LSTM, two layer LSTM, Bi-LSTM-CRF
-* Use existing word embeddings (word2vec, GloVe) instead of torch.nn.Embeddings
-* Adjust EMBEDDING_DIM, HIDDEN_DIM
+* [DONE] Adjust EMBEDDING_DIM, HIDDEN_DIM
+* [DONE large, todo small] Add space to invalid words in dataset
+* [DONE] Use existing word embeddings (word2vec, GloVe) instead of torch.nn.Embeddings
 * fisrt compare neutral vs. subjective, then compare positive vs. negative
 * Normalize data
 * add char-level RNN layer
