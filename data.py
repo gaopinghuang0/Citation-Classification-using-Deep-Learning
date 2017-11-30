@@ -27,12 +27,22 @@ def _preprocess_data_small(max_len=60):
     # context_sentences = []   # all the 4 sentences
     print('pre-processing data small...')
     with open('./citation_sentiment_small/annotated_sentences.txt', 'r') as f:
+        i = 0   # debug
         for line in f.readlines():
             _, _, _, s1, _, s2, _, s3, _, s4, _, purpose_label, polarity_label = line.split('\t')
+            i += 1   # debug
             if int(polarity_label) == 0:
                 continue
             purposes.append(int(purpose_label)-1)
             polarities.append(int(polarity_label)-1)
+            sent = my_tokenizer(s2)   # debug
+            # debug below
+            for word in sent:
+                if len(word) >= 20:
+                    print([word for word in sent if len(word) >= 20], 'lineno', i)
+                    print()
+                    break
+            # debug above
             citing_sentences.append(my_tokenizer(s2)[:max_len])
             # context_sentences.append([x.split() for x in [s1, s2, s3, s4]])
     return citing_sentences, polarities, None
@@ -44,21 +54,13 @@ def _preprocess_data_large(max_len=60):
     # database: http://cl.awaisathar.com/citation-sentiment-corpus/
     print('pre-processing data large...')
     with open('./citation_sentiment_large/citation_sentiment_corpus.txt', 'r') as f:
-        i = 19
         for line in f.readlines():
             if line.startswith('#') or len(line.split('\t')) < 4:
                 continue
             _, _, polarity, sent = line.strip().lower().split('\t')
             polarities.append(polarity_to_idx[polarity])
-            # clean sentence by removing punctuations & stop words
-            _sent = sent
+            # clean sentence by replacing punctuations & stop words
             sent = my_tokenizer(sent)
-            i += 1
-            for word in sent:
-                if 30 > len(word) >= 20:
-                    print([word for word in sent if 30 > len(word) >= 20], 'lineno', i)
-                    print()
-                    break
             citing_sentences.append(sent[:max_len])  # truncate at length of max_len
     return citing_sentences, polarities, polarity_to_idx
 
@@ -171,8 +173,8 @@ def my_tokenizer(s):
 
 if __name__ == '__main__':
     # preprocess_data_large(MAX_LEN)
-    # preprocess_data_small(MAX_LEN)
-    preprocess_data_combined(MAX_LEN)
+    preprocess_data_small(MAX_LEN)
+    # preprocess_data_combined(MAX_LEN)
     # with open('./citation_sentiment_large/citation_sentiment_corpus.txt', 'r') as f:
     #     for line in f.readlines():
     #         if line.startswith('#') or len(line.split('\t')) < 4:

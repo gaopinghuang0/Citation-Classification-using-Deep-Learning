@@ -73,8 +73,6 @@ class BatchLSTM(nn.Module):
         """
         if regenerate:
             count = 0
-            pretrained_embeddings_matrix = torch.Tensor(len(word_to_idx), self.embedding_dim)
-            pretrained_embeddings_matrix.normal_(0, 1)
             with open(path_to_glove, 'r') as f:
                 for line in f.readlines():
                     row = line.split()
@@ -87,15 +85,14 @@ class BatchLSTM(nn.Module):
                         # print('before', self.embeddings.weight.data[word_to_idx[word]])
                         # print('before', pretrained_embeddings_matrix[word_to_idx[word]])
                         # print('before', vector)
-                        pretrained_embeddings_matrix[word_to_idx[word]] = vector
+                        # overwrite initial embedding.weight
+                        self.embeddings.weight.data[word_to_idx[word]] = vector
                         # print('after', pretrained_embeddings_matrix[word_to_idx[word]])
                         # break
                 print('num of words in both word_to_idx and glove', count)
-                save_to_pickle(saved_embedding, pretrained_embeddings_matrix)
+                save_to_pickle(saved_embedding, self.embeddings.weight.data)
         else:
-            pretrained_embeddings_matrix = load_pickle(saved_embedding)
-        # overwrite initial embedding.weight
-        self.embeddings.weight.data.copy_(pretrained_embeddings_matrix)
+            self.embeddings.weight.data.copy_(load_pickle(saved_embedding))
 
     def init_hidden(self):
         # Before we've done anything, we dont have any hidden state.

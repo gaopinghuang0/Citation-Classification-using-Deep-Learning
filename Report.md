@@ -14,7 +14,8 @@
 * [DONE] Adjust EMBEDDING_DIM, HIDDEN_DIM
 * [DONE large, todo small] Add space to invalid words in dataset
 * [DONE] Use existing word embeddings (word2vec, GloVe) instead of torch.nn.Embeddings
-* fisrt compare neutral vs. subjective, then compare positive vs. negative
+* duplicate the data of positive and negative to make size balance
+* first compare neutral vs. subjective, then compare positive vs. negative
 * Normalize data
 * add char-level RNN layer
 * try diff loss function
