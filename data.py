@@ -173,8 +173,8 @@ def my_tokenizer(s):
 
 if __name__ == '__main__':
     # preprocess_data_large(MAX_LEN)
-    preprocess_data_small(MAX_LEN)
-    # preprocess_data_combined(MAX_LEN)
+    # preprocess_data_small(MAX_LEN)
+    preprocess_data_combined(MAX_LEN)
     # with open('./citation_sentiment_large/citation_sentiment_corpus.txt', 'r') as f:
     #     for line in f.readlines():
     #         if line.startswith('#') or len(line.split('\t')) < 4:
