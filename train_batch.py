@@ -46,6 +46,7 @@ else:
     print('==> Building model...')
     model = BatchLSTM(EMBEDDING_DIM, HIDDEN_DIM, BATCH_SIZE, len(word_to_idx), len(polarity_to_idx))
     if use_glove:
+        # model.load_glove_model('GloVe-1.2/vectors.txt', word_to_idx)
         model.load_glove_model('GloVe-1.2/vectors.txt', word_to_idx)
 
 losses = []
