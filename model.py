@@ -3,17 +3,19 @@ Part of BME595 project
 Program:
   Models for citation classification
 """
+import time
+
 import torch
 import torch.autograd as autograd
 import torch.nn as nn
 import torch.nn.functional as F
 from util import load_pickle, save_to_pickle
 
-import time
 
+# does not support batch training
 class LSTMCitationClassification(nn.Module):
     def __init__(self, embedding_dim, hidden_dim, vocab_size, label_size):
-        super(self.__class__, self).__init__()
+        super(LSTMCitationClassification, self).__init__()
         self.hidden_dim = hidden_dim
 
         self.embeddings = nn.Embedding(vocab_size, embedding_dim)
@@ -44,8 +46,9 @@ class LSTMCitationClassification(nn.Module):
         return labels
 
 class BatchLSTM(nn.Module):
-    def __init__(self, embedding_dim, hidden_dim, batch_size, vocab_size, label_size, dropout=0.5):
-        super(self.__class__, self).__init__()
+    def __init__(self, embedding_dim, hidden_dim, batch_size,
+                 vocab_size, label_size, dropout=0.5):
+        super(BatchLSTM, self).__init__()
         self.hidden_dim = hidden_dim
         self.batch_size = batch_size
         self.embedding_dim = embedding_dim
@@ -61,14 +64,14 @@ class BatchLSTM(nn.Module):
         self.hidden = self.init_hidden()
 
     def load_glove_model(self, path_to_glove, word_to_idx,
-                saved_embedding='processed_data/glove_embedding.pkl',
-                regenerate=True):
+                         saved_embedding='processed_data/glove_embedding.pkl',
+                         regenerate=True):
         """
         Overwrite nn.Embedding.weight by pre-trained GloVe vectors.
 
         First load pre-trained GloVe model, i.e., a word-vector lookup table
         Then filter the words appeared in our dataset based on word_to_idx
-        Then construct a idx-vector lookup table and overwrite initial nn.Embedding.weight 
+        Then overwrite initial nn.Embedding.weight
         Credit: https://github.com/pytorch/text/issues/30
         """
         if regenerate:
@@ -84,13 +87,8 @@ class BatchLSTM(nn.Module):
                     # remain the same weight for the word that is not in glove model
                     if word in word_to_idx:
                         count += 1
-                        # print('before', self.embeddings.weight.data[word_to_idx[word]])
-                        # print('before', pretrained_embeddings_matrix[word_to_idx[word]])
-                        # print('before', vector)
                         # overwrite initial embedding.weight
                         self.embeddings.weight.data[word_to_idx[word]] = vector
-                        # print('after', pretrained_embeddings_matrix[word_to_idx[word]])
-                        # break
                 print('num of words in both word_to_idx and glove', count)
                 save_to_pickle(saved_embedding, self.embeddings.weight.data)
         else:
@@ -107,9 +105,9 @@ class BatchLSTM(nn.Module):
     def forward(self, sentences, seq_lengths):
         """
         sentences: BxT, B is batch size, T is MAX_LEN
-        seq_lengths: the length of sequences sorted by the number of non-padding words 
+        seq_lengths: the length of sequences sorted by the number of non-padding words
         """
-        # input is BxT, output of embedding is BxTxEmbed_dim 
+        # input is BxT, output of embedding is BxTxEmbed_dim
         embeds = self.embeddings(sentences)
         # pack, since batch_first is True, input is BxTxEmbed_dim
         pack = nn.utils.rnn.pack_padded_sequence(embeds, seq_lengths, batch_first=True)
