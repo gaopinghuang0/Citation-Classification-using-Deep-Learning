@@ -26,7 +26,7 @@ def _preprocess_data_small(max_len=60):
     citing_sentences = []   # only the sentence with label 1
     # context_sentences = []   # all the 4 sentences
     print('pre-processing data small...')
-    with open('./citation_sentiment_small/annotated_sentences.txt', 'r') as f:
+    with open('./raw_data/citation_sentiment_small/corpus.txt', 'r') as f:
         i = 0   # debug
         for line in f.readlines():
             _, _, _, s1, _, s2, _, s3, _, s4, _, purpose_label, polarity_label = line.split('\t')
@@ -53,7 +53,7 @@ def _preprocess_data_large(max_len=60):
     citing_sentences = []   # only the sentence with label 1
     # database: http://cl.awaisathar.com/citation-sentiment-corpus/
     print('pre-processing data large...')
-    with open('./citation_sentiment_large/citation_sentiment_corpus.txt', 'r') as f:
+    with open('./raw_data/citation_sentiment_large/corpus.txt', 'r') as f:
         for line in f.readlines():
             if line.startswith('#') or len(line.split('\t')) < 4:
                 continue
