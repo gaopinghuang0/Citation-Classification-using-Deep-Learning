@@ -3,8 +3,6 @@ Part of BME595 project
 Program:
   Load data after preprocess
 """
-import torch
-import torch.autograd as autograd
 # import en    # not supported in python3
 import string
 import pickle
@@ -12,11 +10,12 @@ import random
 import re
 import time
 from collections import Counter
-from constants import *
+from constants import MAX_LEN
 from util import save_to_pickle
-
+# Credit: https://stackoverflow.com/a/26802243
+from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import stopwords
-eng_stop = set(stopwords.words('english'))
+ENG_STOP = set(stopwords.words('english'))
 
 
 def _preprocess_data_small(max_len=60):
@@ -58,13 +57,15 @@ def preprocess_data_small(max_len=60):
     citing_sentences, polarities, polarity_to_idx = _preprocess_data_small(max_len)
     word_to_idx = compute_word_to_idx(citing_sentences)
     # save as pickle for later use
-    save_to_pickle('processed_data/data_small.pkl', [citing_sentences, polarities, word_to_idx, polarity_to_idx])
+    save_to_pickle('processed_data/data_small.pkl',
+                   [citing_sentences, polarities, word_to_idx, polarity_to_idx])
 
 def preprocess_data_large(max_len=60):
     citing_sentences, polarities, polarity_to_idx = _preprocess_data_large(max_len)
     word_to_idx = compute_word_to_idx(citing_sentences)
     # save as pickle for later use
-    save_to_pickle('processed_data/data_large.pkl', [citing_sentences, polarities, word_to_idx, polarity_to_idx])
+    save_to_pickle('processed_data/data_large.pkl',
+                   [citing_sentences, polarities, word_to_idx, polarity_to_idx])
 
 def preprocess_data_combined(max_len=60):
     small_sentences, small_polarities, _ = _preprocess_data_small(max_len)
@@ -77,7 +78,8 @@ def preprocess_data_combined(max_len=60):
     word_to_idx = compute_word_to_idx(combined_sentences)
     combined_sentences, combined_polarities = zip(*data)
     # save as pickle for later use
-    save_to_pickle('processed_data/data_combined.pkl', [combined_sentences, combined_polarities, word_to_idx, polarity_to_idx])
+    save_to_pickle('processed_data/data_combined.pkl',
+                   [combined_sentences, combined_polarities, word_to_idx, polarity_to_idx])
 
 
 def compute_word_to_idx(sentences):
@@ -106,7 +108,7 @@ def _get_data(filename, training=True, portion=0.85, balance_skew=True):
         sentences = citing_sentences[:end] if training else citing_sentences[end:]
         polarities = polarities[:end] if training else polarities[end:]
         if balance_skew:
-            # keep the number of neutral similar to the number of positive+negative 
+            # keep the number of neutral similar to the number of positive+negative
             ctr = Counter(polarities)
             size = ctr[1] + ctr[2]
             balanced_sentences = []
@@ -122,43 +124,46 @@ def _get_data(filename, training=True, portion=0.85, balance_skew=True):
         return sentences, polarities, word_to_idx, polarity_to_idx
 
 
-# Credit: https://stackoverflow.com/a/26802243
-from nltk.stem.wordnet import WordNetLemmatizer
+
 wordnet = WordNetLemmatizer()
 def unify_word(word):  # went -> go, apples -> apple, BIG -> big
     """unify verb tense and noun singular"""
-    try: word = wordnet.lemmatize(word, 'v') # unify tense
-    except: pass
-    try: word = wordnet.lemmatize(word) # unify noun
-    except: pass
+    try:
+        word = wordnet.lemmatize(word, 'v') # unify tense
+    except:
+        pass
+    try:
+        word = wordnet.lemmatize(word) # unify noun
+    except:
+        pass
     return word
 
-def remove_xml_tags(s):
+def remove_xml_tags(seq):
     """
     Remove the XML-like tags, such as <REF>, <TREF>, <marker>, ...
     Note that tags should not have whitespace right after '<' and right before '>'
     """
     ptn = r'<\S[^>]*\S>'  # FIXME: it doesn't work for case like '<a>'
-    return re.sub(ptn, '', s)
+    return re.sub(ptn, '', seq)
 
 # credit: https://stackoverflow.com/a/34294398
-def remove_punctuation(s):
+def remove_punctuation(seq):
     translator = str.maketrans('', '', string.punctuation)
-    return s.translate(translator)
+    return seq.translate(translator)
 
 # Credit: https://stackoverflow.com/a/12437721
-def replace_punctuation_with_space(s):
+def replace_punctuation_with_space(seq):
     regex = re.compile('[%s]' % re.escape(string.punctuation))
-    return regex.sub(' ', s)
+    return regex.sub(' ', seq)
 
-def remove_stopwords(s):
-    return [w for w in s.split() if w not in eng_stop]
+def remove_stopwords(seq):
+    return [w for w in seq.split() if w not in ENG_STOP]
 
-def my_tokenizer(s):
-    s = remove_xml_tags(s)
-    s = replace_punctuation_with_space(s)
-    s = s.lower()
-    return [unify_word(w) for w in remove_stopwords(s)]
+def my_tokenizer(seq):
+    seq = remove_xml_tags(seq)
+    seq = replace_punctuation_with_space(seq)
+    seq = seq.lower()
+    return [unify_word(w) for w in remove_stopwords(seq)]
 
 
 if __name__ == '__main__':
