@@ -11,6 +11,7 @@ from util import load_pickle, save_to_pickle
 
 import time
 
+# does not support batch training
 class LSTMCitationClassification(nn.Module):
     def __init__(self, embedding_dim, hidden_dim, vocab_size, label_size):
         super(self.__class__, self).__init__()
@@ -68,7 +69,7 @@ class BatchLSTM(nn.Module):
 
         First load pre-trained GloVe model, i.e., a word-vector lookup table
         Then filter the words appeared in our dataset based on word_to_idx
-        Then construct a idx-vector lookup table and overwrite initial nn.Embedding.weight 
+        Then overwrite initial nn.Embedding.weight 
         Credit: https://github.com/pytorch/text/issues/30
         """
         if regenerate:
@@ -82,13 +83,8 @@ class BatchLSTM(nn.Module):
                     # remain the same weight for the word that is not in glove model
                     if word in word_to_idx:
                         count += 1
-                        # print('before', self.embeddings.weight.data[word_to_idx[word]])
-                        # print('before', pretrained_embeddings_matrix[word_to_idx[word]])
-                        # print('before', vector)
                         # overwrite initial embedding.weight
                         self.embeddings.weight.data[word_to_idx[word]] = vector
-                        # print('after', pretrained_embeddings_matrix[word_to_idx[word]])
-                        # break
                 print('num of words in both word_to_idx and glove', count)
                 save_to_pickle(saved_embedding, self.embeddings.weight.data)
         else:
