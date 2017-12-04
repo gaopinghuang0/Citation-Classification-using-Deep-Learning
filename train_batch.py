@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 
-from model import BatchLSTM
+from model import BatchLSTM, BatchRNN
 from data import get_combined_data
 from util import get_batch_data, save_to_pickle, load_checkpoint, save_checkpoint
 from predict import get_error_rate
@@ -33,10 +33,11 @@ def get_model(word_to_idx, polarity_to_idx, resume=False, use_glove=True):
         start_epoch = checkpoint['epoch']
     else:
         print('==> Building model...')
-        model = BatchLSTM(EMBEDDING_DIM, HIDDEN_DIM, BATCH_SIZE,
+        model = BatchRNN(EMBEDDING_DIM, HIDDEN_DIM, BATCH_SIZE,
                           len(word_to_idx), len(polarity_to_idx))
         if use_glove:
-            model.load_glove_model('GloVe-1.2/vectors.txt', word_to_idx)
+            # model.load_glove_model('GloVe-1.2/vectors.txt', word_to_idx)
+            model.load_glove_model('GloVe-1.2/glove.6B.100d.txt', word_to_idx)
     return model, best_acc, start_epoch
 
 def train(model, loss_function, optimizer, training_data, word_to_idx):
@@ -88,9 +89,9 @@ def train_epochs(resume=False, use_glove=True):
 
     losses = []
     loss_function = nn.NLLLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # optimizer = optim.Adam(model.parameters(), lr=0.0005)
     # optimizers below are not working
-    # optimizer = optim.SGD(model.parameters(), momentum=0.9, lr=0.001)
+    optimizer = optim.SGD(model.parameters(), momentum=0.9, lr=0.1)
     # optimizer = optim.Adagrad(model.parameters(), lr=0.001)
 
     since = time.time()
