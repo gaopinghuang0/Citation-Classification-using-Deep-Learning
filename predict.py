@@ -4,61 +4,71 @@ Program:
   Classify citation  models for citation classification
 """
 
+import time  # debug
+from collections import Counter
+
 import torch
 import torch.autograd as autograd
-from collections import Counter
-from data import get_data_large, get_combined_data
+
+from sklearn import metrics
+from data import get_combined_data
 from util import prepare_sequence, get_batch_data, load_checkpoint
 
 from constants import BATCH_SIZE
 
-import time
 
 torch.manual_seed(1)
 
-# Just return an int label
-def evaluate(model, sentence):
+def evaluate(model, sentence, word_to_idx):
+    """Return an int as the predict."""
     inputs = prepare_sequence(sentence, word_to_idx)
     model.hidden = model.init_hidden()
     labels = model(inputs)
     return labels.data.max(1)[1][0]
 
 def evaluate_batch(model, sentences, seq_lengths):
+    """
+    Return a FloatTensor as predicts for a batch of sentences.
+    """
     sentences_in = autograd.Variable(sentences)
     model.hidden = model.init_hidden()
     labels = model(sentences_in, seq_lengths)
     return labels.data.max(1)[1]
 
-def get_error_rate(model=None, verbose=False, training=False):
-    if not model:
-        checkpoint = load_checkpoint()
-        model = checkpoint['model']
+def get_error_rate(model=None, training=False, report=False):
+    """
+    Compute the overall error rate of the trained model.
 
+    If training is False, use test_data, otherwise training_data.
+    If report is True, print precision, recall, F1-score, and confusion matrix.
+    """
+    model = model or load_checkpoint()['model']
 
-    test_citing_sentences, test_polarities, word_to_idx, polarity_to_idx = get_combined_data(training)
+    sentences, polarities, word_to_idx, _ = get_combined_data(training)
+    data = list(zip(sentences, polarities))
 
-    test_data = list(zip(test_citing_sentences, test_polarities))
+    targets = torch.LongTensor()
+    predicts = torch.LongTensor()
+    for sentences, _targets, seq_lengths in get_batch_data(
+            data, BATCH_SIZE, word_to_idx, shuffle=True):
 
-    count = 0
-    ctr_p = Counter()
-    ctr_t = Counter()
-    total_count = 0
-    for sentences, targets, seq_lengths in get_batch_data(test_data, BATCH_SIZE, word_to_idx, shuffle=True):
-        predicts = evaluate_batch(model, sentences, seq_lengths)
-        ctr_p += Counter(predicts)
-        ctr_t += Counter(targets)
-        count += (predicts != targets).sum()
-        total_count += BATCH_SIZE
-    error_rate = count / total_count
-    if verbose:
-        print(ctr_p, ctr_t)
+        _predicts = evaluate_batch(model, sentences, seq_lengths)
+        targets = torch.cat((targets, _targets), 0)
+        predicts = torch.cat((predicts, _predicts), 0)
+
+    error_rate = (targets != predicts).sum() / targets.size(0)
+
+    if report:
+        print(Counter(targets.numpy()), Counter(predicts.numpy()))
         print('error rate: ', error_rate)
+        labels = ('neutral', 'positive', 'negative')
+        print('Report:\n', metrics.classification_report(
+            targets.numpy(), predicts.numpy(), target_names=labels))
+        print('Confusion matrix: \n', metrics.confusion_matrix(targets.numpy(), predicts.numpy()))
+
     return error_rate
 
 
+
 if __name__ == '__main__':
-    get_error_rate(verbose=True, training=False)
-    # sentence = ['<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', '<START>', 'table', 'tbl', 'stand', 'brill', 'transformationbased', 'errordriven', 'tagget', 'brill', '1995', 'stand', 'tagger', 'base', 'maimum', 'entropy', 'model', 'ratnaparkhi', '1996', 'spatter', 'stand', 'statistical', 'parser', 'base', 'decision', 'tree', 'magerman', '1996', 'igtree', 'stand', 'memorybased', 'tagger', 'daelemans', 'et', 'al']
-    # for word in sentence:
-    #     if word not in word_to_idx:
-    #         print(word)
+    get_error_rate(training=False, report=True)

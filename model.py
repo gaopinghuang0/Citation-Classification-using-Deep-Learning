@@ -78,7 +78,6 @@ class BatchLSTM(nn.Module):
             count = 0
             with open(path_to_glove, 'r') as f:
                 for line in f.readlines():
-                    # print(line)
                     row = line.split()
                     word, vector = row[0], row[1:]
                     vector = torch.FloatTensor(list(map(float, vector)))
