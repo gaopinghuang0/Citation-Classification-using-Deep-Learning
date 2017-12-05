@@ -29,7 +29,7 @@ def _preprocess_dataset_small(max_len=60):
     with open('./raw_data/citation_sentiment_small/corpus.txt', 'r') as f:
         for line in f.readlines():
             _, _, _, s1, _, s2, _, s3, _, s4, _, purpose_label, polarity_label = line.split('\t')
-            if int(polarity_label) == 0:
+            if int(polarity_label) == 0:   # invalid label
                 continue
             purposes.append(int(purpose_label)-1)
             polarities.append(int(polarity_label)-1)

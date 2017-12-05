@@ -11,8 +11,7 @@ BATCH_SIZE = 30
 EPOCHS = 30
 
 RUN_MODE = 'CNN'    # can be CNN, RNN, LSTM, GRU
-MODEL_FILENAME = 'checkpoint/{}_text_classification.ckpt'.format(RUN_MODE.lower())
-
-MERGE_POS_NEG = False
-
 DATASET_MODE = 'purpose'  # can be polarity or purpose
+MODEL_FILENAME = 'checkpoint/{}_{}_classification.ckpt'.format(RUN_MODE.lower(), DATASET_MODE)
+
+MERGE_POS_NEG = False  # if true, treat positive and negative polarity as one class
