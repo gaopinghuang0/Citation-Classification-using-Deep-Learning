@@ -10,7 +10,7 @@ import random
 import re
 import time
 from collections import Counter
-from config import MAX_LEN
+import config as cfg
 from util import save_to_pickle
 # Credit: https://stackoverflow.com/a/26802243
 from nltk.stem.wordnet import WordNetLemmatizer
@@ -19,7 +19,7 @@ ENG_STOP = set(stopwords.words('english'))
 
 random.seed(1234)
 
-def _preprocess_data_small(max_len=60):
+def _preprocess_dataset_small(max_len=60):
     # dataset: http://clair.si.umich.edu/corpora/citation_sentiment_umich.tar.gz
     purposes = []
     polarities = []
@@ -35,9 +35,9 @@ def _preprocess_data_small(max_len=60):
             polarities.append(int(polarity_label)-1)
             citing_sentences.append(my_tokenizer(s2)[:max_len])
             # context_sentences.append([x.split() for x in [s1, s2, s3, s4]])
-    return citing_sentences, polarities, None
+    return citing_sentences, polarities, purposes
 
-def _preprocess_data_large(max_len=60):
+def _preprocess_dataset_large(max_len=60):
     # dataset: http://cl.awaisathar.com/citation-sentiment-corpus/
     polarity_to_idx = {'o': 0, 'p': 1, 'n': 2}
     polarities = []
@@ -54,23 +54,20 @@ def _preprocess_data_large(max_len=60):
             citing_sentences.append(sent[:max_len])  # truncate at length of max_len
     return citing_sentences, polarities, polarity_to_idx
 
-def preprocess_data_small(max_len=60):
-    citing_sentences, polarities, polarity_to_idx = _preprocess_data_small(max_len)
+def preprocess_purpose_data(max_len=60):
+    citing_sentences, _, purposes  = _preprocess_dataset_small(max_len)
     word_to_idx = compute_word_to_idx(citing_sentences)
+    # shuffle all data
+    data = list(zip(citing_sentences, purposes))
+    random.shuffle(data)
+    citing_sentences, purposes = zip(*data)
     # save as pickle for later use
-    save_to_pickle('processed_data/data_small.pkl',
-                   [citing_sentences, polarities, word_to_idx, polarity_to_idx])
+    save_to_pickle('processed_data/purpose.pkl',
+                   [citing_sentences, purposes, word_to_idx])
 
-def preprocess_data_large(max_len=60):
-    citing_sentences, polarities, polarity_to_idx = _preprocess_data_large(max_len)
-    word_to_idx = compute_word_to_idx(citing_sentences)
-    # save as pickle for later use
-    save_to_pickle('processed_data/data_large.pkl',
-                   [citing_sentences, polarities, word_to_idx, polarity_to_idx])
-
-def preprocess_data_combined(max_len=60):
-    small_sentences, small_polarities, _ = _preprocess_data_small(max_len)
-    large_sentences, large_polarities, polarity_to_idx = _preprocess_data_large(max_len)
+def preprocess_polarity_data(max_len=60):
+    small_sentences, small_polarities, _ = _preprocess_dataset_small(max_len)
+    large_sentences, large_polarities, polarity_to_idx = _preprocess_dataset_large(max_len)
     combined_sentences = small_sentences + large_sentences
     combined_polarities = small_polarities + large_polarities
     # shuffle all data
@@ -79,7 +76,7 @@ def preprocess_data_combined(max_len=60):
     word_to_idx = compute_word_to_idx(combined_sentences)
     combined_sentences, combined_polarities = zip(*data)
     # save as pickle for later use
-    save_to_pickle('processed_data/data_combined.pkl',
+    save_to_pickle('processed_data/polarity.pkl',
                    [combined_sentences, combined_polarities, word_to_idx, polarity_to_idx])
 
 
@@ -92,19 +89,29 @@ def compute_word_to_idx(sentences):
     word_to_idx['<PAD>'] = 0
     return word_to_idx
 
+def data_loader(training=True, portion=0.85, balance_skew=True):
+    if cfg.DATASET_MODE == 'polarity':
+        data, word_to_idx, label_to_idx = polarity_data_loader(training, portion, balance_skew)
 
-def get_combined_data(training=True, portion=0.85, balance_skew=True):
-    return _get_data('processed_data/data_combined.pkl', training, portion, balance_skew)
+        if cfg.MERGE_POS_NEG:
+            label_to_idx = {'neutral': 0, 'subjective': 1}
+    else:
+        data, word_to_idx, label_to_idx = purpose_data_loader(training, portion, balance_skew)
+    return data, word_to_idx, label_to_idx
 
-def get_data_large(training=True, portion=0.85, balance_skew=True):
-    return _get_data('processed_data/data_large.pkl', training, portion, balance_skew)
+def purpose_data_loader(training=True, portion=0.85, balance_skew=True):
+    with open('processed_data/purpose.pkl', 'rb') as fp:
+        citing_sentences, purposes, word_to_idx = pickle.load(fp)
+        end = int(len(citing_sentences) * portion)
+        sentences = citing_sentences[:end] if training else citing_sentences[end:]
+        purposes = purposes[:end] if training else purposes[end:]
+        purpose_to_idx = {'Criticizing': 0, 'Comparison': 1, 'Use': 2,
+                          'Substantiating': 3, 'Basis': 4, 'Neutral': 5}
+        return list(zip(sentences, purposes)), word_to_idx, purpose_to_idx
 
-def get_data_small(training=True, portion=0.85, balance_skew=True):
-    return _get_data('processed_data/data_small.pkl', training, portion, balance_skew)
-
-def _get_data(filename, training=True, portion=0.85, balance_skew=True):
-    with open(filename, 'rb') as f:
-        citing_sentences, polarities, word_to_idx, polarity_to_idx = pickle.load(f)
+def polarity_data_loader(training=True, portion=0.85, balance_skew=True):
+    with open('processed_data/polarity.pkl', 'rb') as fp:
+        citing_sentences, polarities, word_to_idx, polarity_to_idx = pickle.load(fp)
         end = int(len(citing_sentences) * portion)
         sentences = citing_sentences[:end] if training else citing_sentences[end:]
         polarities = polarities[:end] if training else polarities[end:]
@@ -121,8 +128,8 @@ def _get_data(filename, training=True, portion=0.85, balance_skew=True):
                         continue
                 balanced_sentences.append(sent)
                 balanced_polarities.append(polarity)
-            return balanced_sentences, balanced_polarities, word_to_idx, polarity_to_idx
-        return sentences, polarities, word_to_idx, polarity_to_idx
+            return list(zip(balanced_sentences, balanced_polarities)), word_to_idx, polarity_to_idx
+        return list(zip(sentences, polarities)), word_to_idx, polarity_to_idx
 
 
 
@@ -162,14 +169,15 @@ def replace_punctuation_with_space(seq):
 def remove_stopwords(seq):
     return (w for w in seq.split() if w not in ENG_STOP)
 
-def my_tokenizer(seq):
+def my_tokenizer(seq, should_unify=True):
     seq = remove_xml_tags(seq)
     seq = replace_punctuation_with_space(seq)
     seq = seq.lower()
-    return [unify_word(w) for w in remove_stopwords(seq)]
+    if should_unify:
+        return [unify_word(w) for w in remove_stopwords(seq)]
+    return list(remove_stopwords(seq))
 
 
 if __name__ == '__main__':
-    # preprocess_data_large(MAX_LEN)
-    # preprocess_data_small(MAX_LEN)
-    preprocess_data_combined(MAX_LEN)
+    preprocess_purpose_data(cfg.MAX_LEN)
+    preprocess_polarity_data(cfg.MAX_LEN)

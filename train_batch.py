@@ -13,7 +13,7 @@ import torch.optim as optim
 
 from model import BatchRNN
 from model_cnn import CNN_NLP
-from data import get_combined_data
+from data import data_loader
 from util import get_batch_data, save_to_pickle, load_checkpoint, save_checkpoint
 from predict import get_error_rate
 
@@ -21,7 +21,7 @@ import config as cfg
 
 torch.manual_seed(1)
 
-def get_model(word_to_idx, polarity_to_idx, resume=False, use_glove=True):
+def get_model(word_to_idx, label_to_idx, resume=False, use_glove=True):
     """Resume a saved model or build a new model"""
 
     best_acc = 0  # best test accuracy
@@ -37,10 +37,10 @@ def get_model(word_to_idx, polarity_to_idx, resume=False, use_glove=True):
         print('==> Building model {}...'.format(cfg.RUN_MODE))
         if cfg.RUN_MODE in ["RNN", "LSTM", "GRU"]:
             model = BatchRNN(cfg.EMBEDDING_DIM, cfg.HIDDEN_DIM, cfg.BATCH_SIZE,
-                             len(word_to_idx), len(polarity_to_idx), rnn_model=cfg.RUN_MODE)
+                             len(word_to_idx), len(label_to_idx), rnn_model=cfg.RUN_MODE)
         else:
             model = CNN_NLP(cfg.EMBEDDING_DIM, cfg.HIDDEN_DIM, cfg.BATCH_SIZE,
-                             len(word_to_idx), len(polarity_to_idx))
+                             len(word_to_idx), len(label_to_idx))
         if use_glove:
             # model.load_glove_model('GloVe-1.2/vectors.txt', word_to_idx)
             model.load_glove_model('GloVe-1.2/glove.6B.100d.txt', word_to_idx, regenerate=True)
@@ -96,12 +96,9 @@ def train_epochs(resume=False, use_glove=True):
 
     print('total epochs: ', cfg.EPOCHS, '; use_glove: ', use_glove)
 
-    citing_sentences, polarities, word_to_idx, polarity_to_idx = get_combined_data()
+    training_data, word_to_idx, label_to_idx = data_loader()
 
-    if cfg.MERGE_POS_NEG:
-        polarity_to_idx = {'neutral': 0, 'subjective': 1}
-
-    model, best_acc, start_epoch = get_model(word_to_idx, polarity_to_idx,
+    model, best_acc, start_epoch = get_model(word_to_idx, label_to_idx,
                                              resume, use_glove)
 
     losses = []
@@ -109,12 +106,12 @@ def train_epochs(resume=False, use_glove=True):
     if cfg.RUN_MODE == 'CNN':
         optimizer = optim.Adam(model.parameters(), lr=0.001)
     else:
+        # optimizer = optim.Adam(model.parameters(), lr=0.001)
         optimizer = optim.SGD(model.parameters(), momentum=0.9, lr=0.1)
     # optimizers below are not working
     # optimizer = optim.Adagrad(model.parameters(), lr=0.001)
 
     since = time.time()
-    training_data = list(zip(citing_sentences, polarities))
     training_error_rates = []
     test_error_rates = []
     for epoch in range(1+start_epoch, start_epoch+cfg.EPOCHS+1):

@@ -11,7 +11,7 @@ import torch
 import torch.autograd as autograd
 
 from sklearn import metrics
-from data import get_combined_data
+from data import data_loader
 from util import prepare_sequence, get_batch_data, load_checkpoint
 
 import config as cfg
@@ -48,8 +48,7 @@ def get_error_rate(model=None, training=False, report=False):
     """
     model = model or load_checkpoint()['model']
 
-    sentences, polarities, word_to_idx, _ = get_combined_data(training)
-    data = list(zip(sentences, polarities))
+    data, word_to_idx, label_to_idx = data_loader(training)
 
     targets = torch.LongTensor()
     predicts = torch.LongTensor()
@@ -63,9 +62,10 @@ def get_error_rate(model=None, training=False, report=False):
     error_rate = (targets != predicts).sum() / targets.size(0)
 
     if report:
-        print(Counter(targets.numpy()), Counter(predicts.numpy()))
+        print('targets:', Counter(targets.numpy()), 'predicts:', Counter(predicts.numpy()))
         print('error rate: ', error_rate)
-        labels = ('neutral', 'positive', 'negative')
+        idx2label = {i:v for v, i in label_to_idx.items()}
+        labels = [idx2label[idx] for idx in sorted(idx2label.keys())]
         print('Report:\n', metrics.classification_report(
             targets.numpy(), predicts.numpy(), target_names=labels))
         print('Confusion matrix: \n', metrics.confusion_matrix(targets.numpy(), predicts.numpy()))
@@ -81,8 +81,7 @@ def get_error_rate_with_two_classes(training=False):
     """
     model = load_checkpoint()['model']
 
-    sentences, polarities, word_to_idx, _ = get_combined_data(training)
-    data = list(zip(sentences, polarities))
+    data, word_to_idx, _ = data_loader(training)
 
     targets = torch.LongTensor()
     predicts = torch.LongTensor()
@@ -101,7 +100,8 @@ def get_error_rate_with_two_classes(training=False):
 
     print(Counter(targets.numpy()), Counter(predicts.numpy()))
     print('error rate: ', error_rate)
-    labels = ('neutral', 'subjective')
+    idx2label = {i:v for v, i in label_to_idx.items()}
+    labels = [idx2label[idx] for idx in sorted(idx2label.keys())]
     print('Report:\n', metrics.classification_report(
         targets.numpy(), predicts.numpy(), target_names=labels))
     print('Confusion matrix: \n', metrics.confusion_matrix(targets.numpy(), predicts.numpy()))
@@ -110,4 +110,4 @@ def get_error_rate_with_two_classes(training=False):
 
 if __name__ == '__main__':
     get_error_rate(training=False, report=True)
-    get_error_rate_with_two_classes(training=False)
+    # get_error_rate_with_two_classes(training=False)

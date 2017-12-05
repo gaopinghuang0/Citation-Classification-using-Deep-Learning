@@ -1,13 +1,11 @@
 
-from data import get_data_small, get_data_large, get_combined_data, _get_data
+from data import data_loader
 from collections import Counter
 from util import load_pickle
 
-citing_sentences, polarities, word_to_idx, polarity_to_idx = get_combined_data()
-print(len(citing_sentences))
-print(Counter(polarities))
+data, word_to_idx = data_loader()
 
-citing_sentences, polarities, word_to_idx, polarity_to_idx = get_combined_data(balance_skew=False)
+data, word_to_idx, polarity_to_idx = get_combined_data(balance_skew=False)
 print(len(citing_sentences))
 
 print(citing_sentences[0])
