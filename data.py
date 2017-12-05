@@ -17,7 +17,7 @@ from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import stopwords
 ENG_STOP = set(stopwords.words('english'))
 
-# random.seed(1)
+random.seed(1234)
 
 def _preprocess_data_small(max_len=60):
     # dataset: http://clair.si.umich.edu/corpora/citation_sentiment_umich.tar.gz
@@ -129,9 +129,11 @@ def _get_data(filename, training=True, portion=0.85, balance_skew=True):
 wordnet = WordNetLemmatizer()
 def unify_word(word):  # went -> go, apples -> apple, BIG -> big
     """unify verb tense and noun singular"""
+    # return word  # compare w/ or w/o unify
     try:
         word = wordnet.lemmatize(word, 'v') # unify tense
-    except:
+    except e:
+        print(e)
         pass
     try:
         word = wordnet.lemmatize(word) # unify noun
@@ -158,7 +160,7 @@ def replace_punctuation_with_space(seq):
     return regex.sub(' ', seq)
 
 def remove_stopwords(seq):
-    return [w for w in seq.split() if w not in ENG_STOP]
+    return (w for w in seq.split() if w not in ENG_STOP)
 
 def my_tokenizer(seq):
     seq = remove_xml_tags(seq)

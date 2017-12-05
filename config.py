@@ -13,4 +13,4 @@ EPOCHS = 30
 RUN_MODE = 'CNN'    # can be CNN, RNN, LSTM, GRU
 MODEL_FILENAME = 'checkpoint/{}_text_classification.ckpt'.format(RUN_MODE.lower())
 
-MERGE_POS_NEG = True
+MERGE_POS_NEG = False

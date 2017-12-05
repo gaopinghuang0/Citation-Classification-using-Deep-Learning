@@ -1,5 +1,5 @@
 
-from data import get_data_small, get_data_large, get_combined_data
+from data import get_data_small, get_data_large, get_combined_data, _get_data
 from collections import Counter
 from util import load_pickle
 
@@ -12,6 +12,7 @@ print(len(citing_sentences))
 
 print(citing_sentences[0])
 print(len(word_to_idx))
+
 
 # print word by length in reverse order
 # print('\n'.join(sorted(word_to_idx.keys(), key=len, reverse=True)[:100]))

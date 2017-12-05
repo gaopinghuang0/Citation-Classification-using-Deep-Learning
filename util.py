@@ -9,7 +9,6 @@ import random
 import pickle
 import os
 import config as cfg 
-# print(word_to_idx)
 
 random.seed(1)
 

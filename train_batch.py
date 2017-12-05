@@ -42,8 +42,8 @@ def get_model(word_to_idx, polarity_to_idx, resume=False, use_glove=True):
             model = CNN_NLP(cfg.EMBEDDING_DIM, cfg.HIDDEN_DIM, cfg.BATCH_SIZE,
                              len(word_to_idx), len(polarity_to_idx))
         if use_glove:
-            model.load_glove_model('GloVe-1.2/vectors.txt', word_to_idx)
-            # model.load_glove_model('GloVe-1.2/glove.6B.100d.txt', word_to_idx, regenerate=True)
+            # model.load_glove_model('GloVe-1.2/vectors.txt', word_to_idx)
+            model.load_glove_model('GloVe-1.2/glove.6B.100d.txt', word_to_idx, regenerate=True)
     return model, best_acc, start_epoch
 
 def train(model, loss_function, optimizer, training_data, word_to_idx):
@@ -59,6 +59,8 @@ def train(model, loss_function, optimizer, training_data, word_to_idx):
         # Step 1. Prepare the inputs to be passed to the model (i.e, turn the words
         # into integer indices and wrap them in variables)
         sentences_in = autograd.Variable(sentences)
+        if cfg.MERGE_POS_NEG:
+            targets[targets>=1] = 1
         targets = autograd.Variable(targets)
 
         # Step 2. Recall that torch *accumulates* gradients. Before passing in a
@@ -95,6 +97,9 @@ def train_epochs(resume=False, use_glove=True):
     print('total epochs: ', cfg.EPOCHS, '; use_glove: ', use_glove)
 
     citing_sentences, polarities, word_to_idx, polarity_to_idx = get_combined_data()
+
+    if cfg.MERGE_POS_NEG:
+        polarity_to_idx = {'neutral': 0, 'subjective': 1}
 
     model, best_acc, start_epoch = get_model(word_to_idx, polarity_to_idx,
                                              resume, use_glove)
