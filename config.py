@@ -9,3 +9,6 @@ EMBEDDING_DIM = 100
 HIDDEN_DIM = 100
 BATCH_SIZE = 30
 EPOCHS = 30
+
+RUN_MODE = 'CNN'    # can be CNN, RNN, LSTM, GRU
+MODEL_FILENAME = 'checkpoint/{}_text_classification.ckpt'.format(RUN_MODE.lower())

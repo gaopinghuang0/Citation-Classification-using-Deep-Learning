@@ -10,7 +10,7 @@ import random
 import re
 import time
 from collections import Counter
-from constants import MAX_LEN
+from config import MAX_LEN
 from util import save_to_pickle
 # Credit: https://stackoverflow.com/a/26802243
 from nltk.stem.wordnet import WordNetLemmatizer

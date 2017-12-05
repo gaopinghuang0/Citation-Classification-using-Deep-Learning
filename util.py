@@ -8,8 +8,10 @@ import torch.autograd as autograd
 import random
 import pickle
 import os
-from constants import *
+import config as cfg 
 # print(word_to_idx)
+
+random.seed(1)
 
 def prepare_sequence(context, word_to_idx):
     idxs = [word_to_idx[w] for w in context]
@@ -21,7 +23,7 @@ def label_to_text(scores, label_to_idx):
     print([ix2tag[i] for i in tensor.max(1)[1]])
 
 
-def get_batch_data(data, batch_size, word_to_idx, padding_len=MAX_LEN, shuffle=True):
+def get_batch_data(data, batch_size, word_to_idx, padding_len=cfg.MAX_LEN, shuffle=True):
     if shuffle:
         random.shuffle(data)
     size = len(data)
@@ -59,7 +61,7 @@ def load_pickle(filename):
 def load_checkpoint():
     print('==> Resuming from checkpoint..')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('checkpoint/lstm-citation-classification.ckpt')
+    checkpoint = torch.load(cfg.MODEL_FILENAME)
     print('best_acc so far:', checkpoint['acc'])
     return checkpoint
 
@@ -72,7 +74,7 @@ def save_checkpoint(model, acc, epoch):
     }
     if not os.path.isdir('checkpoint'):
         os.mkdir('checkpoint')
-    torch.save(state, 'checkpoint/lstm-citation-classification.ckpt')
+    torch.save(state, cfg.MODEL_FILENAME)
 
 def get_local_time_string():
     from datetime import datetime, timezone
