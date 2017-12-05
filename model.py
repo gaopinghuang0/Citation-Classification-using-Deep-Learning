@@ -12,7 +12,6 @@ import torch.nn.functional as F
 from util import load_pickle, save_to_pickle
 
 
-
 class BatchRNN(nn.Module):
     def __init__(self, embedding_dim, hidden_dim, batch_size,
                  vocab_size, label_size, dropout=0.5, rnn_model="LSTM"):

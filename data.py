@@ -17,6 +17,7 @@ from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import stopwords
 ENG_STOP = set(stopwords.words('english'))
 
+# random.seed(1)
 
 def _preprocess_data_small(max_len=60):
     # dataset: http://clair.si.umich.edu/corpora/citation_sentiment_umich.tar.gz

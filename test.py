@@ -14,7 +14,7 @@ print(citing_sentences[0])
 print(len(word_to_idx))
 
 # print word by length in reverse order
-print('\n'.join(sorted(word_to_idx.keys(), key=len, reverse=True)[:100]))
+# print('\n'.join(sorted(word_to_idx.keys(), key=len, reverse=True)[:100]))
 
 # path_to_glove = 'GloVe-1.2/vectors.txt'
 # with open(path_to_glove, 'r') as f:
