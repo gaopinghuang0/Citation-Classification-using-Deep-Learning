@@ -16,11 +16,11 @@ from util import save_to_pickle, load_pickle
 
 
 CONFIG = {
-    "filter_sizes": [3, 4, 5],
-    "num_filters": 250,
+    "filter_sizes": [3],
+    "num_filters": 50,   # could be 250
     # "vocab_size": None,
-    "emb_dim": 100,
-    "hid_sizes": [250],
+    # "emb_dim": 100,
+    "hid_sizes": [50],  # could 250
     # "num_classes": 3,
     "dropout_switches": [True]
 }

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pickle
 
 import time
-from data import get_data_large
+from data import data_loader
 from util import load_pickle, get_local_time_string
 
 
@@ -63,7 +63,7 @@ def my_lineplot(x_axis, y_axis_list, filename=None, legend=None, xlabel=None, yl
 
 
 if __name__ == '__main__':
-    citing_sentences, polarities, word_to_idx, polarity_to_idx = get_data_large()
+    # citing_sentences, polarities, word_to_idx, polarity_to_idx = get_data_large()
     # draw_sentence_length_histogram(citing_sentences)
     # plot_loss()
     plot_error_rates()

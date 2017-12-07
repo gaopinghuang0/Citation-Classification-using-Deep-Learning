@@ -43,7 +43,7 @@ def get_model(word_to_idx, label_to_idx, resume=False, use_glove=True):
                              len(word_to_idx), len(label_to_idx))
         if use_glove:
             # model.load_glove_model('GloVe-1.2/vectors.txt', word_to_idx)
-            model.load_glove_model('GloVe-1.2/glove.6B.100d.txt', word_to_idx, regenerate=True)
+            model.load_glove_model(cfg.GLOVE_FILE, word_to_idx, regenerate=True)
     return model, best_acc, start_epoch
 
 def train(model, loss_function, optimizer, training_data, word_to_idx):
@@ -97,14 +97,15 @@ def train_epochs(resume=False, use_glove=True):
     print('total epochs: ', cfg.EPOCHS, '; use_glove: ', use_glove)
 
     training_data, word_to_idx, label_to_idx = data_loader()
-
     model, best_acc, start_epoch = get_model(word_to_idx, label_to_idx,
                                              resume, use_glove)
 
     losses = []
     loss_function = nn.NLLLoss()
     if cfg.RUN_MODE == 'CNN':
-        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        # optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0)
+        optimizer = optim.SGD(model.parameters(), lr=0.1)
+        # optimizer = optim.Adagrad(model.parameters(), lr=0.01, weight_decay=0.01)
     else:
         # optimizer = optim.Adam(model.parameters(), lr=0.001)
         optimizer = optim.SGD(model.parameters(), momentum=0.9, lr=0.1)
@@ -135,4 +136,4 @@ def train_epochs(resume=False, use_glove=True):
 
 
 if __name__ == '__main__':
-    train_epochs(resume=False, use_glove=True)
+    train_epochs(resume=False, use_glove=cfg.USE_GLOVE)

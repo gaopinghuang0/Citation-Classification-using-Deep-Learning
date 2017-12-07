@@ -3,12 +3,13 @@ from data import data_loader
 from collections import Counter
 from util import load_pickle
 
-data, word_to_idx = data_loader()
+data, word_to_idx, label_to_idx = data_loader()
+print(len(data))
 
-data, word_to_idx, polarity_to_idx = get_combined_data(balance_skew=False)
-print(len(citing_sentences))
+data, word_to_idx, label_to_idx = data_loader(balance_skew=False)
+print(len(data))
 
-print(citing_sentences[0])
+print(data[:2])
 print(len(word_to_idx))
 
 

@@ -48,7 +48,7 @@ def get_error_rate(model=None, training=False, report=False):
     """
     model = model or load_checkpoint()['model']
 
-    data, word_to_idx, label_to_idx = data_loader(training)
+    data, word_to_idx, label_to_idx = data_loader(training=training)
 
     targets = torch.LongTensor()
     predicts = torch.LongTensor()
