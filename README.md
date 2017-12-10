@@ -1,17 +1,18 @@
 # Title
-Predict References Given Related Work of Paper
+Citation Purpose and Polarity Classification using CNN and RNN
 
 ## Team members
 Gaoping Huang (gaopinghuang0), Meng-Han Wu (wumenghan)
 
 ## Goals
-Our goal is to first get dataset (at least 1000 papers, each with a `Related Work` section and corresponding references), and then recommend/predict proper references given a `Related Work` section of a new paper. It may uncover blind spots for researchers.
+Our goal is to classify the *purpose* and *polarity* of citations given a citation sentence. Citation polarity has 3 classes, such as positive, negative, and neutral, while citation purpose has 6 classes, representing the author’s intuition behind choosing a publication, such as criticizing and comparison.
+
+![dataset distribution](./figures/dataset_distribution.png)
 
 ## Challenges
-1. Prepare dataset (at least 1000 papers, each with a `Related Work` section and corresponding references)
-2. Use RNN/CNN to predict **multiple references** for a given `Related Work`
+1. Prepare dataset
+2. Use RNN/CNN to do citation classification 
 
 ## Work partition
-* Challenge 1: Meng-Han Wu
-* Challenge 2: Work together
-* Final Report: Gaoping Huang
+* Gaoping Huang: building CNN and RNN models
+* Meng-Han Wu: adjusting hyperparams and training GloVe on different corpus.

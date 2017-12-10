@@ -9,9 +9,10 @@ HIDDEN_DIM = 100
 BATCH_SIZE = 30
 EPOCHS = 30
 
-EMBEDDING_DIM = 50
+EMBEDDING_DIM = 100
 USE_GLOVE = True
-GLOVE_FILE = 'GloVe-1.2/glove.6B.50d.txt'
+# GLOVE_FILE = 'GloVe-1.2/glove.6B.100d.txt'
+GLOVE_FILE = 'GloVe-1.2/domain_specific.txt'
 
 RUN_MODE = 'CNN'    # can be CNN, RNN, LSTM, GRU
 DATASET_MODE = 'purpose'  # can be polarity or purpose
