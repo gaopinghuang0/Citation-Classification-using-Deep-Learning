@@ -43,9 +43,12 @@ def _preprocess_dataset_small(max_len=60, augmentation=False, deduplicate=True):
             polarities.append(int(polarity_label)-1)
 
             if augmentation:   # use non-unified word as augmentation
-                augment_sentences.append(my_tokenizer(s2, should_unify=False)[:max_len])
+                augment_sentences.append(my_tokenizer(s2, unify_prob=0.9)[:max_len])
             # context_sentences.append([x.split() for x in [s1, s2, s3, s4]])
-    print('deduplicate:', deduplicate, '; unique sentences:', len(seen))
+    if deduplicate:
+        print('deduplicate:', deduplicate, '; unique sentences:', len(seen))
+    else:
+        print('deduplicate:', deduplicate)
     assert(len(citing_sentences) == len(polarities) == len(purposes))
     return citing_sentences, polarities, purposes, augment_sentences
 
@@ -69,11 +72,17 @@ def _preprocess_dataset_large(max_len=60, deduplicate=True):
             seen[key] = True
             citing_sentences.append(sent)  
             polarities.append(polarity_to_idx[polarity])
-    print('deduplicate:', deduplicate, '; unique sentences:', len(seen))
+    if deduplicate:
+        print('deduplicate:', deduplicate, '; unique sentences:', len(seen))
+    else:
+        print('deduplicate:', deduplicate)
     assert(len(citing_sentences) == len(polarities))
     return citing_sentences, polarities, polarity_to_idx
 
 def preprocess_purpose_data(max_len=60, portion=0.85, augmentation=False, deduplicate=True):
+    """
+    Only augment training data, not test data.
+    """
     sentences, _, purposes, augment_sentences = _preprocess_dataset_small(max_len, augmentation, deduplicate=deduplicate)
     # shuffle all data
     if augmentation:
@@ -94,8 +103,8 @@ def preprocess_purpose_data(max_len=60, portion=0.85, augmentation=False, dedupl
         train_sentences += train_augment_sentences
         train_purposes += train_purposes
         train_data = list(zip(train_sentences, train_purposes))
-        # rebind test_data
-        test_sentences, test_purposes, test_augment_sentences = zip(*test_data)
+        # rebind test_data without augementation
+        test_sentences, test_purposes, _ = zip(*test_data)
         test_data = list(zip(test_sentences, test_purposes))
 
     # save as pickle for later use
@@ -177,10 +186,25 @@ def polarity_data_loader(training=True, balance_skew=True):
         return data, word_to_idx, polarity_to_idx
 
 
+def detect_invalid_concat_word(max_len=60):
+    with open('./raw_data/citation_sentiment_small/original_corpus.txt', 'r') as f:
+        line_num = 1
+        for line in f.readlines():    
+            _, _, _, s1, _, s2, _, s3, _, s4, _, purpose_label, polarity_label = line.split('\t')
+            if int(polarity_label) == 0:   # invalid label
+                continue
+            sent = my_tokenizer(s2)[:max_len]
+            for word in sent:
+                if len(word) >= 30:
+                    print(line_num, word)
+            line_num += 1
+
+
 wordnet = WordNetLemmatizer()
-def unify_word(word):  # went -> go, apples -> apple, BIG -> big
+def unify_word(word, unify_prob=1):  # went -> go, apples -> apple, BIG -> big
     """unify verb tense and noun singular"""
-    # return word  # compare w/ or w/o unify
+    if random.random() >= unify_prob:  # do not unify
+        return word
     try:
         word = wordnet.lemmatize(word, 'v') # unify tense
     except e:
@@ -213,15 +237,14 @@ def replace_punctuation_with_space(seq):
 def remove_stopwords(seq):
     return (w for w in seq.split() if w not in ENG_STOP)
 
-def my_tokenizer(seq, should_unify=True):
+def my_tokenizer(seq, unify_prob=1):
     seq = remove_xml_tags(seq)
     seq = replace_punctuation_with_space(seq)
     seq = seq.lower()
-    if should_unify:
-        return [unify_word(w) for w in remove_stopwords(seq)]
-    return list(remove_stopwords(seq))
+    return [unify_word(w, unify_prob) for w in remove_stopwords(seq)]
 
 
 if __name__ == '__main__':
-    # preprocess_purpose_data(cfg.MAX_LEN, augmentation=True, deduplicate=False)
-    preprocess_polarity_data(cfg.MAX_LEN, deduplicate=False)
+    # detect_invalid_concat_word()
+    preprocess_purpose_data(cfg.MAX_LEN, augmentation=True, deduplicate=False)
+    # preprocess_polarity_data(cfg.MAX_LEN, deduplicate=False)

@@ -40,21 +40,22 @@ class CNN_NLP(nn.Module):
         # make sure the padding word has embedding of 0
         self.embeddings = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
 
-        self.encoders = []
+        self.convs = []
         for i, filter_size in enumerate(self.filter_sizes):
-            enc_attr_name = "encoder_%d" % i
-            self.__setattr__(enc_attr_name,
-                             nn.Conv2d(in_channels=1,
-                                       out_channels=self.num_filters,
-                                       kernel_size=(filter_size, self.emb_dim)))
-            self.encoders.append(self.__getattr__(enc_attr_name))
+            conv_name = "conv_%d" % i
+            conv = nn.Conv2d(in_channels=1,
+                             out_channels=self.num_filters,
+                             kernel_size=(filter_size, self.emb_dim))
+            self.convs.append(conv)
+            self.add_module(conv_name, conv)
 
         self.hid_layers = []
         ins = len(self.filter_sizes) * self.num_filters
         for i, hid_size in enumerate(self.hid_sizes):
-            hid_attr_name = "hid_layer_%d" % i
-            self.__setattr__(hid_attr_name, nn.Linear(ins, hid_size))
-            self.hid_layers.append(self.__getattr__(hid_attr_name))
+            hid_name = "hid_layer_%d" % i
+            hid_layer = nn.Linear(ins, hid_size)
+            self.hid_layers.append(hid_layer)
+            self.add_module(hid_name, hid_layer)
             ins = hid_size
         self.logistic = nn.Linear(ins, num_classes)
 
@@ -80,8 +81,8 @@ class CNN_NLP(nn.Module):
         x = x.unsqueeze(c_idx)
 
         enc_outs = []
-        for encoder in self.encoders:
-            enc_ = F.relu(encoder(x))
+        for conv in self.convs:
+            enc_ = F.relu(conv(x))
             k_h = enc_.size()[h_idx]
             k_w = 1
             enc_ = F.max_pool2d(enc_, kernel_size=(k_h, k_w))

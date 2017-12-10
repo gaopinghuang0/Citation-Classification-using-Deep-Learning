@@ -1,6 +1,7 @@
 
-from data import data_loader
 from collections import Counter
+
+from data import data_loader
 from util import load_pickle
 
 data, word_to_idx, label_to_idx = data_loader()
