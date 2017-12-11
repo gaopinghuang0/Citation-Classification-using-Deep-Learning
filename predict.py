@@ -1,7 +1,7 @@
 """
 Part of BME595 project
 Program:
-  Classify citation  models for citation classification
+  Classify citations using saved models
 """
 
 import time  # debug

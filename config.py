@@ -1,7 +1,7 @@
 """
 Part of BME595 project
 Program:
-  Some constants
+  Some constants and configs
 """
 
 MAX_LEN = 60   # remember to rerun preprocess if changed

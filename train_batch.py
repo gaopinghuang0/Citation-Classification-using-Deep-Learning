@@ -103,8 +103,8 @@ def train_epochs(resume=False, use_glove=True):
     losses = []
     loss_function = nn.NLLLoss()
     if cfg.RUN_MODE == 'CNN':
-        # optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0)
-        optimizer = optim.SGD(model.parameters(), lr=0.1)
+        optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0)
+        # optimizer = optim.SGD(model.parameters(), lr=0.1)
         # optimizer = optim.Adagrad(model.parameters(), lr=0.01, weight_decay=0.01)
     else:
         # optimizer = optim.Adam(model.parameters(), lr=0.001)

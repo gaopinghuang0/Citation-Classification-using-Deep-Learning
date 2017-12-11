@@ -3,7 +3,8 @@
 ## Increase accurary
 * [DONE] clean data: 
 	* remove tags like <REF> and <TREF>, or even remove the content between these tags
-	* remove punctuations & stop words
+	* replace punctuations & remove stop words
+	* manually split some mistakenly concatenated words
 * [DONE] draw histogram for sentence length
 * [DONE] Balance skewed data: keep similar size of neural and positive+negative
 * [Not working] Order word_to_idx by frequency
@@ -15,11 +16,11 @@
 * [DONE large, todo small] Add space to invalid words in dataset
 * [DONE] Use existing word embeddings (word2vec, GloVe) instead of torch.nn.Embeddings
 * [DONE, not working] first compare neutral vs. subjective, then compare positive vs. negative
-* duplicate the data of positive and negative to make size balance
+* [DONE] try diff loss function
+* [DONE] try diff backprop optimization
+* [DONE, Not working] duplicate the data of positive and negative to make size balance
 * Normalize data
-* add char-level RNN layer
-* try diff loss function
-* try diff backprop optimization
+* Add char-level RNN layer
 
 ## Speed up training
 * [DONE] Increase batch_size
