@@ -1,5 +1,5 @@
 # Title
-Citation Purpose and Polarity Classification using CNN and RNN
+Citation Purpose and Polarity Classification using CNN and RNN. It's a BME595 deep learning course project.
 
 ## Team members
 Gaoping Huang (gaopinghuang0), Meng-Han Wu (wumenghan)
