@@ -1,8 +1,10 @@
 # Title
-Citation Purpose and Polarity Classification using CNN and RNN. It's a BME595 deep learning course project.
+Citation Purpose and Polarity Classification using CNN and RNN. It's a course project of BME595 deep learning.
 
 ## Team members
 Gaoping Huang (gaopinghuang0), Meng-Han Wu (wumenghan)
+
+Slides: [Course Project Report](https://docs.google.com/presentation/d/12daPEMI-hLMMk9SDbsUkmN1Q5nZRRUuMoo1lDe1U150/edit?usp=sharing)
 
 ## Goals
 Our goal is to classify the *purpose* and *polarity* of citations given a citation sentence. Citation polarity has 3 classes, such as positive, negative, and neutral, while citation purpose has 6 classes, representing the author’s intuition behind choosing a publication, such as criticizing and comparison.
