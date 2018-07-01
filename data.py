@@ -1,7 +1,8 @@
 """
 Part of BME595 project
 Program:
-  Load data after preprocess
+  1. Preprocess data
+  2. Provide data_loader after preprocess
 """
 # import en    # not supported in python3
 import string
