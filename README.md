@@ -11,6 +11,9 @@ Our goal is to classify the *purpose* and *polarity* of citations given a citati
 
 ![dataset distribution](./figures/dataset_distribution.png)
 
+## Results
+![results](./figures/results.png)
+
 ## Challenges
 1. Prepare dataset
 2. Use RNN/CNN to do citation classification 
